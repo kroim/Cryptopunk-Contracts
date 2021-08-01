@@ -15,7 +15,6 @@ import "./Ownable.sol";
 import "./SafeMath.sol";
 import "./Counters.sol";
 import "./Ownable.sol";
-import "./Ownable.sol";
 
 contract FunkiFoxes is ERC721, Ownable {
     using SafeMath for uint256;
