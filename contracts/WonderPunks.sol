@@ -13,6 +13,14 @@ contract WonderPunks is ERC721, Ownable {
     uint256 public currentSupply = 0;
     uint256 public maxPunksPurchase = 20;
     uint256 public mintPrice = 100000000 * 10 ** 9;  // 0.1ETH
+    uint256 private _devXFee = 20;  // 20%
+    uint256 private _devYFee = 75;  // 75%
+    address private _devWalletX;
+    address private _devWalletY;
+    uint256 private _devXBalance = 0;
+    uint256 private _devYBalance = 0;
+    uint256 public reflectionFee = 5;  // 5%
+    uint256 public totalReflectionBalance = 0;
 
     bool paused = true;
 
@@ -25,9 +33,11 @@ contract WonderPunks is ERC721, Ownable {
 
     mapping(uint256=>Punk) public punks;
     mapping(address=>bool) public isMinter;
+    mapping(address=>uint256) private _pWidthraws;
 
     constructor() ERC721("WonderPunks", "WDP") {
-        
+        _devWalletX = 0xBDA2e26669eb6dB2A460A9018b16495bcccF6f0a;
+        _devWalletY = 0xBDA2e26669eb6dB2A460A9018b16495bcccF6f0a;
     }
 
     modifier onlyMinter() {
@@ -35,9 +45,18 @@ contract WonderPunks is ERC721, Ownable {
         _;
     }
     
-    function withdraw() public payable onlyOwner {
-        uint balance = address(this).balance;
-        payable(msg.sender).transfer(balance);
+    function withdrawDevX() public payable {
+        require(msg.sender == _devWalletX, "You are not DevX!");
+        uint256 balanceX = _devXBalance;
+        _devXBalance = 0;
+        payable(msg.sender).transfer(balanceX);
+    }
+
+    function withdrawDevY() public payable {
+        require(msg.sender == _devWalletY, "You are not DevY!");
+        uint256 balanceY = _devYBalance;
+        _devYBalance = 0;
+        payable(msg.sender).transfer(balanceY);
     }
 
     function setMaxPunksPurchase(uint256 _maxPunksPurchase) public onlyOwner {
@@ -71,6 +90,7 @@ contract WonderPunks is ERC721, Ownable {
         if (_msgSender() != owner()) {
             require(msg.value >= mintPrice * _numberOf, "insufficient balance");
         }
+
         for (uint256 i = 0; i < _numberOf; i++) {
             uint256 _prevPunkIndex = _punkIndex;
             _punkIndex = _punkIndex.add(1);
@@ -83,7 +103,12 @@ contract WonderPunks is ERC721, Ownable {
         }
     }
 
-    function splitBalance(uint256 amount) private {
-        
+    function splitBalance(uint256 _amount) private {
+        uint256 _devXAmount = _amount.mul(_devXFee).div(100);
+        uint256 _reflectionAmount = _amount.mul(reflectionFee).div(100);
+        uint256 _devYAmount = _amount.sub(_devXAmount).sub(_reflectionAmount);
+        _devXBalance += _devXAmount;
+        _devYBalance += _devYAmount;
+        totalReflectionBalance += _reflectionAmount;
     }
 }
