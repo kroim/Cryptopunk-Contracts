@@ -5,8 +5,9 @@ totalSupply : 11000
 price: 0.1ETH  
 
 ## CryptoPigs
-name: CryptoPigs  
-symbol: PIGGO  
+Project name: CryptoPigs  
+token name: CryptoPig  
+token symbol: PIGGO  
 totalSupply: 5000  
 price: 500 ONE  
 20% of mint fee to wallet address X (dev wallet 1)  
