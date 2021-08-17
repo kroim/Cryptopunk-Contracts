@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./ERC721.sol";
-import "./Ownable.sol";
-import "./SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract CryptoPig is ERC721, Ownable {
     using SafeMath for uint256;
@@ -33,8 +33,11 @@ contract CryptoPig is ERC721, Ownable {
 
     mapping(uint256=>Punk) public punks;
     mapping(address=>bool) public isMinter;
-    mapping(address=>uint256) private _pBalanceOf;
-    mapping(address=>uint256) private _pWidthraws;
+    mapping(address=>uint256) private _pBalanceOf;  // balance of nfts
+    mapping(address=>uint256) private _pWidthraws;  // amount of claims
+
+    event PunkMint(address indexed to, Punk _punk);
+    event ClaimReflection(address indexed account, uint256 amount);
 
     constructor() ERC721("CryptoPig", "PIGGO") {
         _devWalletX = 0xBDA2e26669eb6dB2A460A9018b16495bcccF6f0a;
@@ -88,12 +91,12 @@ contract CryptoPig is ERC721, Ownable {
         isMinter[_minterAddress] = false;
     }
 
-    function mintPunk(uint256 _numberOf, string[] memory _uris) public payable onlyMinter {
+    function mintPunk(uint256 _numberOf, string[] memory _uris) public payable {
         require(_numberOf > 0, "Empty data");
         require(_uris.length == _numberOf, "Invalid data");
         require(currentSupply + _numberOf <= totalSupply, "No punks available for minting!");
         if (_msgSender() != owner()) {
-            require(msg.value >= mintPrice * _numberOf, "insufficient balance");
+            require(msg.value >= mintPrice.mul(_numberOf), "insufficient balance");
         }
         currentSupply += _numberOf;
         _pBalanceOf[msg.sender] = _numberOf;
@@ -104,8 +107,9 @@ contract CryptoPig is ERC721, Ownable {
             newPunk._pCreator = msg.sender;
             newPunk._pOwner = msg.sender;
             newPunk._pUri = _uris[i];
-            newPunk._pOwnershipRecords.push(address(0));
+            newPunk._pOwnershipRecords.push(msg.sender);
             _safeMint(msg.sender, _prevPunkIndex);
+            emit PunkMint(msg.sender, newPunk);
         }
     }
 
@@ -123,6 +127,11 @@ contract CryptoPig is ERC721, Ownable {
         _;
     }
 
+    /**
+        claim reflection
+        the claim amount is saved, and it current reflection is bigger than claimed amount,
+        the user can claim the rest amount continue. If less, the user can't claim
+     */
     function claimReflection() public onlyHolder {
         uint256 withdrawedAmount = _pWidthraws[msg.sender];
         uint256 claimAmount = totalReflectionBalance.mul(_pBalanceOf[msg.sender]).div(currentSupply);
@@ -130,5 +139,20 @@ contract CryptoPig is ERC721, Ownable {
         uint256 withdrawAmount = claimAmount.sub(withdrawedAmount);
         _pWidthraws[msg.sender] += withdrawAmount;
         payable(msg.sender).transfer(withdrawAmount);
+        emit ClaimReflection(msg.sender, withdrawAmount);
     }
+
+    // override token transfer function
+    function _transfer(address from, address to, uint256 tokenId) internal virtual override {
+        // check punk index is available
+        require(tokenId <= currentSupply, "Undefined punk index!");
+        // check owner of punk
+        require(punks[tokenId]._pOwner == from, "Caller is not owner");
+        punks[tokenId]._pOwner = to;
+        _pBalanceOf[from]--;
+        _pBalanceOf[to]++;
+        punks[tokenId]._pOwnershipRecords.push(to);
+        emit Transfer(from, to, tokenId);
+    }
+
 }
