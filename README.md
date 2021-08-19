@@ -25,7 +25,16 @@ price: 500 ONE
 75% mint fee to wallet Y  (dev wallet 2)  
 marketplace: 5% of sale reflected to COINK or piggoNFT holders  
 
-- testnet bsc: https://testnet.bscscan.com/address/0xd1b2108db64ab9facb36d0bd408f8568ef7683a4
+and 75% of the 500 one mint fee per NFT go to this address: 
+DevY: 0xEB8BC8F7801c46DA134f0B828Fa1Cc557019220b
+
+and 20% to this one:
+DevX: 0xdc57e257b65c8496EBA5780DAD44B86Fe78eCDbF
+
+- harmony testnet: https://explorer.pops.one/address/0xef5e009515d02bbd66603c0ad778c3b23b82881a  
+- testnet bsc: https://testnet.bscscan.com/address/0xd1b2108db64ab9facb36d0bd408f8568ef7683a4  
+- rinkeby for 0.05 eth: https://rinkeby.etherscan.io/address/0x19eb95e52adfd91473a6a2c92a6950b910c19d78  
+                        https://rinkeby.etherscan.io/address/0x7b9e5e220b3c10301094a6002c37812a55fd5630  
 
 ## PotatoPower Token for Cryptopunks
 token name: Potator Power  
@@ -36,3 +45,4 @@ mint limit for admin: 60
 
 contract: https://etherscan.io/address/0x27d164f393df0e68b4cbf53c87b8981b54f65dd4  
 Frontend: https://mint.potatopower.club  
+
