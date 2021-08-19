@@ -28,6 +28,7 @@ contract CryptoPig is ERC721, Ownable {
         address _pCreator;
         address _pOwner;
         string _pUri;
+        uint256 _tokenId;
         address[] _pOwnershipRecords;
     }
 
@@ -40,27 +41,30 @@ contract CryptoPig is ERC721, Ownable {
     event ClaimReflection(address indexed account, uint256 amount);
 
     constructor() ERC721("CryptoPig", "PIGGO") {
-        _devWalletX = 0xBDA2e26669eb6dB2A460A9018b16495bcccF6f0a;
-        _devWalletY = 0xBDA2e26669eb6dB2A460A9018b16495bcccF6f0a;
+        _devWalletX = 0xdc57e257b65c8496EBA5780DAD44B86Fe78eCDbF;
+        _devWalletY = 0xEB8BC8F7801c46DA134f0B828Fa1Cc557019220b;
     }
 
     function balanceOf(address account) public view override returns(uint256) {
         return _pBalanceOf[account];
     }
 
-    modifier onlyMinter() {
-        require(isMinter[_msgSender()] || owner() == _msgSender(), "Caller is not minter!");
-        _;
+    function setDevX(address _devX) public onlyOwner {
+        _devWalletX = _devX;
     }
     
-    function withdrawDevX() public payable {
+    function setDevY(address _devY) public onlyOwner {
+        _devWalletY = _devY;
+    }
+
+    function withdrawDevX() public {
         require(msg.sender == _devWalletX, "You are not DevX!");
         uint256 balanceX = _devXBalance;
         _devXBalance = 0;
         payable(msg.sender).transfer(balanceX);
     }
 
-    function withdrawDevY() public payable {
+    function withdrawDevY() public {
         require(msg.sender == _devWalletY, "You are not DevY!");
         uint256 balanceY = _devYBalance;
         _devYBalance = 0;
@@ -78,6 +82,7 @@ contract CryptoPig is ERC721, Ownable {
     function tokenURI(uint256 _tokenId) override public view returns (string memory) {
         return punks[_tokenId]._pUri;
     }
+
 
     function addMinter(address _minterAddress) public onlyOwner {
         require(_minterAddress != address(0), "Minter Address is the zero address");
@@ -107,6 +112,7 @@ contract CryptoPig is ERC721, Ownable {
             newPunk._pCreator = msg.sender;
             newPunk._pOwner = msg.sender;
             newPunk._pUri = _uris[i];
+            newPunk._tokenId = _prevPunkIndex;
             newPunk._pOwnershipRecords.push(msg.sender);
             _safeMint(msg.sender, _prevPunkIndex);
             emit PunkMint(msg.sender, newPunk);
@@ -155,4 +161,8 @@ contract CryptoPig is ERC721, Ownable {
         emit Transfer(from, to, tokenId);
     }
 
+    modifier onlyMinter() {
+        require(isMinter[_msgSender()] || owner() == _msgSender(), "Caller is not minter!");
+        _;
+    }
 }
