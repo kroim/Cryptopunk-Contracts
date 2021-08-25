@@ -21,8 +21,7 @@ contract FunkiFoxes is ERC721, Ownable {
 
     Counters.Counter private _fufoIDs;
     uint256 public totalSupply = 12000;
-    uint256 public currentSupply = 0;
-    uint256 public price = 0.1 ether;
+    uint256 public mintPrice = 0.1 ether;
     bool public paused = true;
     mapping (address=>uint256) private _tokenBalance;
     mapping(uint256=>string) private hashes;
@@ -42,19 +41,68 @@ contract FunkiFoxes is ERC721, Ownable {
         _tokenBalance[msg.sender] = totalSupply;
     }
 
-    function balanceOf(address account) public view override returns(uint256) {
-        return _tokenBalance[account];
-    }
-
     function setPaused() public onlyOwner {
         paused = !paused;
     }
 
-    function tokenURI(uint256 _tokenId) override public view returns (string memory) {
-        return punks[_tokenId].uri;
+    function initializeHash(string[] memory _hashes) public onlyOwner {
+        for (uint256 i = 0; i < _hashes.length; i++) {
+            hashes[i] = _hashes[i];
+        }
     }
 
-    function initializeHash(string[] memory _hashes) public onlyOwner {
-        
+    function setMintPrice(uint256 _mintPrice) public onlyOwner {
+        mintPrice = _mintPrice;
+    }
+
+    function currentSupply() public view returns(uint256) {
+        return _fufoIDs.current();
+    }
+
+    function mintPunk() public payable {
+        require(!paused, "Minting is paused");
+        require(currentSupply() < totalSupply, "No punks available for minting!");
+        require(_tokenBalance[owner()] > 0, "No punks available for minting from owner issue!");
+        if (_msgSender() != owner()) {
+            require(msg.value >= mintPrice, "Insufficient Balance!");
+        }
+        uint256 _punkIndex = _fufoIDs.current();
+        _fufoIDs.increment();
+        _tokenBalance[owner()] -= 1;
+        _tokenBalance[_msgSender()] += 1;
+        Punk storage newPunk = punks[_punkIndex];
+        newPunk.tokenId = _punkIndex;
+        newPunk.creator = _msgSender();
+        newPunk.owner = _msgSender();
+        newPunk.uri = hashes[_punkIndex];
+        newPunk.ownershipRecords.push(_msgSender());
+        emit PunkMint(msg.sender, newPunk);
+    }
+    
+    function balanceOf(address account) public view virtual override returns(uint256) {
+        return _tokenBalance[account];
+    }
+
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(tokenId < _fufoIDs.current(), "ERC721Metadata: URI query for nonexistent token");
+        return punks[tokenId].uri;
+    }
+
+    function ownerOf(uint256 tokenId) public view virtual override returns (address) {
+        address owner = punks[tokenId].owner;
+        require(owner != address(0), "ERC721: owner query for nonexistent token");
+        return owner;
+    }
+
+    function _transfer(address from, address to, uint256 tokenId) internal virtual override {
+        // check punk index is available
+        require(tokenId < _fufoIDs.current(), "Undefined punk index!");
+        // check owner of punk
+        require(punks[tokenId].owner == from, "Caller is not owner");
+        punks[tokenId].owner = to;
+        _tokenBalance[from]--;
+        _tokenBalance[to]++;
+        punks[tokenId].ownershipRecords.push(to);
+        emit Transfer(from, to, tokenId);
     }
 }
