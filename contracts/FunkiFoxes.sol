@@ -78,6 +78,10 @@ contract FunkiFoxes is ERC721, Ownable {
         newPunk.ownershipRecords.push(_msgSender());
         emit PunkMint(msg.sender, newPunk);
     }
+
+    function withdrawAll() public onlyOwner {
+        require(payable(_msgSender()).send(address(this).balance));
+    }
     
     function balanceOf(address account) public view virtual override returns(uint256) {
         return _tokenBalance[account];
