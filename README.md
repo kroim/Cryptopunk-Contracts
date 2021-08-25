@@ -1,3 +1,13 @@
+## DogePass
+Name: DogePass
+Symbol: DOPA
+supply: 10,000 adjustable
+Type A: 9000 adjustable, Type B: 1000 adjustable
+Type A price: x adjustable, type B price: y adjustable
+max number per mint: adjustable
+
+- rinkeby: https://rinkeby.etherscan.io/address/0x3dcb7f7972c96ddf8de93c565ce5fe696eca8d4e
+
 ## Crypto Swords
 Name: Crypto Swords
 Symbol: Swords
