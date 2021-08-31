@@ -1209,8 +1209,8 @@ library SafeMath {
 contract DogePass is ERC721, Ownable {
     using SafeMath for uint256;
 
-    uint256 private _typeAIDs = 0;
-    uint256 private _typeBIDs = 9000;
+    uint256 public currentASupply = 0;
+    uint256 public currentBSupply = 9000;
     uint256 public aSupply = 9000;
     uint256 public bSupply = 1000;
     uint256 public mintAPrice = 0.06 ether;
@@ -1246,12 +1246,12 @@ contract DogePass is ERC721, Ownable {
     }
 
     function setASupply(uint256 _aSupply) public onlyOwner {
-        require(_aSupply <= 9000 && _aSupply > _typeAIDs, "Invalid amound for Type A supply!");
+        require(_aSupply <= 9000 && _aSupply > currentASupply, "Invalid amound for Type A supply!");
         aSupply = _aSupply;
     }
 
     function setBSupply(uint256 _bSupply) public onlyOwner {
-        require(_bSupply > _typeBIDs, "Invalid amound for Type A supply!");
+        require(_bSupply > currentBSupply, "Invalid amound for Type A supply!");
         bSupply = _bSupply;
     }
 
@@ -1288,15 +1288,15 @@ contract DogePass is ERC721, Ownable {
     }
 
     function currentSupply() public view returns(uint256) {
-        return _typeAIDs.add(_typeBIDs);
+        return currentASupply.add(currentBSupply);
     }
 
     function mintPunk() public payable {
         require(!paused, "Minting is paused");
         if (enableB) {
-            require(_typeBIDs < bSupply, "No punks available for minting!");
-            uint256 _punkIndex = _typeBIDs;
-            _typeBIDs++;
+            require(currentBSupply < bSupply, "No punks available for minting!");
+            uint256 _punkIndex = currentBSupply;
+            currentBSupply++;
             _tokenBalance[_msgSender()] += 1;
             Punk storage newPunk = punks[_punkIndex];
             newPunk.tokenId = _punkIndex;
@@ -1307,9 +1307,9 @@ contract DogePass is ERC721, Ownable {
             newPunk.tokenType = 2;
             emit PunkMint(msg.sender, newPunk);
         } else {
-            require(_typeAIDs < aSupply, "No punks available for minting!");
-            uint256 _punkIndex = _typeAIDs;
-            _typeAIDs++;
+            require(currentASupply < aSupply, "No punks available for minting!");
+            uint256 _punkIndex = currentASupply;
+            currentASupply++;
             _tokenBalance[_msgSender()] += 1;
             Punk storage newPunk = punks[_punkIndex];
             newPunk.tokenId = _punkIndex;
@@ -1318,6 +1318,9 @@ contract DogePass is ERC721, Ownable {
             newPunk.uri = _uriA;
             newPunk.ownershipRecords.push(_msgSender());
             newPunk.tokenType = 1;
+            if (currentASupply == aSupply && !enableB) {
+                enableB = !enableB;
+            }
             emit PunkMint(msg.sender, newPunk);
         }
     }
@@ -1331,7 +1334,7 @@ contract DogePass is ERC721, Ownable {
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(tokenId < _typeAIDs || tokenId < _typeBIDs,
+        require(tokenId < currentASupply || tokenId < currentBSupply,
             "ERC721Metadata: URI query for nonexistent token");
         return punks[tokenId].uri;
     }
@@ -1344,7 +1347,7 @@ contract DogePass is ERC721, Ownable {
 
     function _transfer(address from, address to, uint256 tokenId) internal virtual override {
         // check punk index is available
-        require(tokenId < _typeAIDs || tokenId < _typeBIDs, "Undefined tokenID!");
+        require(tokenId < currentASupply || tokenId < currentBSupply, "Undefined tokenID!");
         // check owner of punk
         require(punks[tokenId].owner == from, "Caller is not owner");
         punks[tokenId].owner = to;

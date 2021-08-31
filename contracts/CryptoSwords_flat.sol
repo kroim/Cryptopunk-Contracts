@@ -1214,6 +1214,9 @@ contract CryptoSwords is ERC721, Ownable {
     uint256 public price = 0.05 ether;
     uint256 public paused = 0;  // 0: paused, 1: mintable
     uint256 public _tokenIndex = 0;
+    bool public hashFlag = true;
+    mapping(uint256=>string) private hashes;
+    uint256 private hashLength = 0;
 
     struct Item {
         address itemCreator;
@@ -1234,6 +1237,22 @@ contract CryptoSwords is ERC721, Ownable {
 
     function balanceOf(address account) public view override returns(uint256) {
         return _balanceOf[account];
+    }
+
+    function initializeHash(string[] memory _hashes) public onlyOwner {
+        for (uint256 i = hashLength; i < hashLength + _hashes.length; i++) {
+            hashes[i] = _hashes[i];
+        }
+        hashLength += _hashes.length;
+    }
+
+    function setHashFlag() public onlyOwner {
+        hashFlag = !hashFlag;
+    }
+
+    function checkHash(uint256 hashId) public view returns(string memory) {
+        require(hashFlag, "Unable to check hash!");
+        return hashes[hashId];
     }
 
     function setPaused(uint256 _paused) public onlyOwner {

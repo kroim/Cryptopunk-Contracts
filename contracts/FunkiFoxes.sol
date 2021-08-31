@@ -24,6 +24,7 @@ contract FunkiFoxes is ERC721, Ownable {
     uint256 public mintPrice = 0.1 ether;
     bool public paused = true;
     mapping (address=>uint256) private _tokenBalance;
+    bool public hashFlag = true;
     mapping(uint256=>string) private hashes;
     
     struct Punk {
@@ -49,6 +50,15 @@ contract FunkiFoxes is ERC721, Ownable {
         for (uint256 i = 0; i < _hashes.length; i++) {
             hashes[i] = _hashes[i];
         }
+    }
+
+    function setHashFlag() public onlyOwner {
+        hashFlag = !hashFlag;
+    }
+
+    function checkHash(uint256 hashId) public view returns(string memory) {
+        require(hashFlag, "Unable to check hash!");
+        return hashes[hashId];
     }
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
