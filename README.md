@@ -1,12 +1,3 @@
-## DogePass
-Name: DogePass
-Symbol: DOPA
-supply: 10,000 adjustable
-Type A: 9000 adjustable, Type B: 1000 adjustable
-Type A price: x adjustable, type B price: y adjustable
-max number per mint: adjustable
-
-- rinkeby: https://rinkeby.etherscan.io/address/0x0cc73b1b05a2b8acaca1e31e635b50634a9881ff#code
 
 ## Crypto Swords
 Name: Crypto Swords
@@ -34,3 +25,11 @@ price: 0.1ETH
 
 - rinkeby: https://rinkeby.etherscan.io/address/0x1a3cb59a1b27ee2d08807a55c17511f8b88cb344
 
+## Raunchy Rabbit  
+name: Raunchy Rabbit  
+symbol: RARA  
+totalSupply: 20,000  
+season1: 10,000  
+season2: 10,000  
+
+- rinkeby: https://rinkeby.etherscan.io/address/0xf072767d585d3479bedb393a8fd6bc619419e804
