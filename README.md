@@ -6,6 +6,7 @@ totalSupply: 7777
 price: 0.05 ETH
 
 - rinkeby: https://rinkeby.etherscan.io/address/0x70b487084c72842a27ca8a96806fd6bbb20dd5b8
+- rinkeby1: https://rinkeby.etherscan.io/token/0xd294a864d547a219dc35612397ad2b9d5e794ce2
 
 ## FunkiFoxes
 name : FunkiFoxes  
