@@ -15,8 +15,8 @@ contract CryptoSwords is ERC721, Ownable {
     uint256 public maxMintNumber = 10;
     bool public paused = false;
     uint256 public _tokenIndex = 0;
-    string public baseTokenURI = "http://144.126.130.99:7002/metadata/";
-
+    string public baseTokenURI = "https://ipfs.crypto-swords.com/metadata/";
+    
     struct Punk {
         uint256 tokenId;
         address creator;
