@@ -2,16 +2,6 @@
 - bsc testnet: https://testnet.bscscan.com/address/0xf4cbb1ccfcfe0ddd86077baa66b6c1faf19ec393
 
 
-## Crypto Swords
-Name: Crypto Swords
-Symbol: Swords
-totalSupply: 7777
-price: 0.05 ETH
-
-- rinkeby: https://rinkeby.etherscan.io/address/0x70b487084c72842a27ca8a96806fd6bbb20dd5b8
-- rinkeby1: https://rinkeby.etherscan.io/token/0xd294a864d547a219dc35612397ad2b9d5e794ce2
-- rinkeby client: https://rinkeby.etherscan.io/address/0x5e189ff63e6f8d2488bd46b2b04bac85176f0c73
-
 ## FunkiFoxes
 name : FunkiFoxes  
 symbol : FUFO  
@@ -30,11 +20,14 @@ price: 0.1ETH
 
 - rinkeby: https://rinkeby.etherscan.io/address/0x1a3cb59a1b27ee2d08807a55c17511f8b88cb344 
 
-## Raunchy Rabbit  
-name: Raunchy Rabbit  
-symbol: RARA  
+## Chubby Bunny  
+name: Chubby Bunny  
+symbol: CUBU  
 totalSupply: 20,000  
 season1: 10,000  
 season2: 10,000  
+price: 0.05 ETH  
 
-- rinkeby: https://rinkeby.etherscan.io/address/0xf072767d585d3479bedb393a8fd6bc619419e804
+- https://rinkeby.etherscan.io/address/0xa5fbe5510d8028bbc0e96563d2af2e7bd5e03497
+
+
