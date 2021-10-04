@@ -26,10 +26,10 @@ symbol: CUBU
 totalSupply: 20,000  
 season1: 10,000  
 season2: 10,000  
-price: 0.05 ETH  
+price: 0.06 ETH  
+presale price: 0.05  
+presale amount: 1000  
 
-- https://rinkeby.etherscan.io/address/0x8e8323d31c46fc42cb77b339451e7b526354aefe
-- https://rinkeby.etherscan.io/address/0x4c38f608fc46572794b83b53320f58a9c75b1765
-- https://rinkeby.etherscan.io/address/0x800De394E18CC08114E938a9c9A68e0Cc427dcf3
+- https://rinkeby.etherscan.io/address/0xab2174bf83e281a2f48ccea8086830c440b51dbd
 
 
