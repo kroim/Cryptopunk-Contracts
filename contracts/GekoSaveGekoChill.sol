@@ -20,7 +20,7 @@ contract GekoSaveGekoChill is ERC721, Ownable {
     address public devWallet = 0x5eacBb8267458B6bAC84D4019Bb64CC1a35b248E;
     uint256 public maxMintNumber = 10;
 
-    string public baseTokenURI = "https://ipfs.domain.com/metadata/";
+    string public baseTokenURI = "https://ipfs.gekosave.io/metadata/";
     bool public paused = false;
     mapping (address=>uint256) private _tokenBalance;
     
@@ -39,7 +39,7 @@ contract GekoSaveGekoChill is ERC721, Ownable {
         string uri;
         address[] ownershipRecords;
     }
-    mapping(uint256=>Punk) private punks;
+    mapping(uint256=>Punk) public punks;
 
     event PunkMint(address indexed to, Punk _punk);
     event SetPrice(uint256 _value);
@@ -74,7 +74,7 @@ contract GekoSaveGekoChill is ERC721, Ownable {
         uint256 _punkIndex = currentSupply;
         currentSupply += _numberOfTokens;
         _tokenBalance[_msgSender()] += _numberOfTokens;
-        for (uint256 i = 0; i < _numberOfTokens; i++) {
+        for (uint256 i = 1; i <= _numberOfTokens; i++) {
             Punk storage newPunk = punks[_punkIndex.add(i)];
             newPunk.tokenId = _punkIndex.add(i);
             newPunk.creator = _msgSender();
@@ -157,6 +157,10 @@ contract GekoSaveGekoChill is ERC721, Ownable {
             quickSort(arr, left, j);
         if (i < right)
             quickSort(arr, i, right);
+    }
+
+    function creatorOf(uint256 _tokenId) public view returns (address) {
+        return punks[_tokenId].creator;
     }
 
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {
