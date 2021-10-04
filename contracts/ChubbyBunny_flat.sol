@@ -1405,7 +1405,7 @@ contract ChubbyBunny is ERC721, Ownable {
 
     function _transfer(address from, address to, uint256 tokenId) internal virtual override {
         // check punk index is available
-        require(tokenId < currentSupply, "Undefined tokenID!");
+        require(tokenId <= currentSupply, "Undefined tokenID!");
         // check owner of punk
         require(ownerOf(tokenId) == from, "Caller is not owner");
         require(to != address(0), "ERC721: transfer to the zero address");
