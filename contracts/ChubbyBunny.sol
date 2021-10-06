@@ -139,6 +139,12 @@ contract ChubbyBunny is ERC721, Ownable {
     function withdrawByDev() public {
         require(_msgSender() == devWallet, "You are not a DEV!");
         payable(_msgSender()).transfer(devBalance);
+        devBalance = 0;
+    }
+
+    function changeDevWallet(address _devAddress) public {
+        require(_msgSender() == devWallet, "You are not a DEV!");
+        devWallet = _devAddress;
     }
 
     function creatorOf(uint256 _tokenId) public view returns(address) {
