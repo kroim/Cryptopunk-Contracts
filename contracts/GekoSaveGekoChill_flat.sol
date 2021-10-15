@@ -983,10 +983,6 @@ abstract contract Ownable is Context {
     }
 }
 
-// CAUTION
-// This version of SafeMath should only be used with Solidity 0.8 or later,
-// because it relies on the compiler's built in overflow checks.
-
 /**
  * @dev Wrappers over Solidity's arithmetic operations.
  *
@@ -1268,7 +1264,7 @@ contract GekoSaveGekoChill is ERC721, Ownable {
 
     uint256 public currentSupply = 0;
     uint256 public totalSupply = 10000;
-    uint256 public mintPrice = 1 ether;  // BNB
+    uint256 public mintPrice = 0.12 ether;  // BNB
     uint256 public rewardFee = 80;  // 8% with 1000 uint for rewards to 100 top holders
     uint256 public devFee = 30;  // 3% with 1000 unit
     uint256 public rewardBalance = 0;
@@ -1285,8 +1281,8 @@ contract GekoSaveGekoChill is ERC721, Ownable {
         uint256 index;
         bool exist;
     }
-    mapping(address=>Holder) checkHolders;
-    mapping(address=>bool) claimedAccount;
+    mapping(address=>Holder) public checkHolders;
+    mapping(address=>bool) public claimedAccount;
     
     struct Punk {
         uint256 tokenId;
@@ -1295,16 +1291,18 @@ contract GekoSaveGekoChill is ERC721, Ownable {
         string uri;
         address[] ownershipRecords;
     }
-    mapping(uint256=>Punk) public punks;
+    mapping(uint256=>Punk) private punks;
 
     event PunkMint(address indexed to, Punk _punk);
     event SetPrice(uint256 _value);
     event UpdateHolders(address[] _holders);
+    event ChangePaused(bool _value);
     
     constructor() ERC721("GekoSave GekoChill", "GG") {}
 
     function changePaused() public onlyOwner {
         paused = !paused;
+        emit ChangePaused(paused);
     }
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
@@ -1343,6 +1341,10 @@ contract GekoSaveGekoChill is ERC721, Ownable {
         updateHolders(_msgSender());
     }
 
+    function creatorOf(uint256 _tokenId) public view returns (address) {
+        return punks[_tokenId].creator;
+    }
+
     function updateHolders(address _account) private {
         if (!checkHolders[_account].exist) {
             checkHolders[_account].index = holders.length;
@@ -1374,6 +1376,7 @@ contract GekoSaveGekoChill is ERC721, Ownable {
     function withdrawByDev() public {
         require(_msgSender() == devWallet, "You are not a DEV!");
         payable(_msgSender()).transfer(devBalance);
+        devBalance = 0;
     }
 
     function claimReward() public {
@@ -1391,8 +1394,12 @@ contract GekoSaveGekoChill is ERC721, Ownable {
         } else {
             isClaim = true;
         }
-        claimedAccount[_msgSender()] = true;
-        payable(_msgSender()).transfer(rewardBalance / 100);
+        if (isClaim) {
+            claimedAccount[_msgSender()] = true;
+            uint256 claimAmount = rewardBalance.div(100);
+            rewardBalance = rewardBalance.sub(claimAmount);
+            payable(_msgSender()).transfer(claimAmount);
+        }
     }
 
     function quickSort(address[] memory arr, uint256 left, uint256 right) private view {
@@ -1415,10 +1422,6 @@ contract GekoSaveGekoChill is ERC721, Ownable {
             quickSort(arr, i, right);
     }
 
-    function creatorOf(uint256 _tokenId) public view returns (address) {
-        return punks[_tokenId].creator;
-    }
-
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {
         address owner = punks[tokenId].owner;
         require(owner != address(0), "ERC721: owner query for nonexistent token");
@@ -1427,7 +1430,7 @@ contract GekoSaveGekoChill is ERC721, Ownable {
 
     function _transfer(address from, address to, uint256 tokenId) internal virtual override {
         // check punk index is available
-        require(tokenId < currentSupply, "Undefined tokenID!");
+        require(tokenId <= currentSupply, "Undefined tokenID!");
         // check owner of punk
         require(ownerOf(tokenId) == from, "Caller is not owner");
         require(to != address(0), "ERC721: transfer to the zero address");
