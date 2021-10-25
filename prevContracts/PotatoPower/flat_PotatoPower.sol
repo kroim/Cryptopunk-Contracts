@@ -1,6 +1,6 @@
 
 /** 
- *  SourceUnit: a:\project_2021\Cryptopunk-Contracts\prevContracts\PotatoPower.sol
+ *  SourceUnit: a:\project_2021\Cryptopunk-Contracts\prevContracts\PotatoPower\PotatoPower.sol
 */
 
 /**
