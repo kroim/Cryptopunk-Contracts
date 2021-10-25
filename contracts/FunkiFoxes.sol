@@ -47,21 +47,21 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "./lib/CustomString.sol";
 
 contract FunkiFoxes is ERC721, Ownable {
     using SafeMath for uint256;
-    using Counters for Counters.Counter;
 
-    Counters.Counter private _fufoIDs;
+    string public FOX_PROVENANCE = "";
+    uint256 public currentSupply = 0;
     uint256 public totalSupply = 12000;
     uint256 public mintPrice = 0.1 ether;
-    bool public paused = true;
-    mapping (address=>uint256) private _tokenBalance;
-    bool public hashFlag = true;
-    mapping(uint256=>string) private hashes;
     
+    mapping (address=>uint256) private _tokenBalance;
+    string baseTokenURI;
+    uint256 public maxMintNumber = 10;
+    bool public paused = true;
+
     struct Fox {
         uint256 tokenId;
         address creator;
@@ -72,69 +72,71 @@ contract FunkiFoxes is ERC721, Ownable {
     mapping(uint256=>Fox) private foxes;
 
     event FoxMint(address indexed to, Fox _fox);
+    event SetPrice(uint256 _value);
+    event ChangePaused(bool _value);
     
-    constructor() ERC721("FunkiFoxes", "FUFO") {
-        _tokenBalance[msg.sender] = totalSupply;
+    constructor(string memory _baseTokenURI) ERC721("FunkiFoxes", "FUFO") {
+        baseTokenURI = _baseTokenURI;
     }
 
     function setPaused() public onlyOwner {
         paused = !paused;
-    }
-
-    function initializeHash(string[] memory _hashes) public onlyOwner {
-        for (uint256 i = 0; i < _hashes.length; i++) {
-            hashes[i] = _hashes[i];
-        }
-    }
-
-    function setHashFlag() public onlyOwner {
-        hashFlag = !hashFlag;
-    }
-
-    function checkHash(uint256 hashId) public view returns(string memory) {
-        require(hashFlag, "Unable to check hash!");
-        return hashes[hashId];
+        emit ChangePaused(paused);
     }
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
+        emit SetPrice(mintPrice);
     }
 
-    function currentSupply() public view returns(uint256) {
-        return _fufoIDs.current();
+    function setBaseTokenURI(string memory _baseTokenURI) public onlyOwner {
+        baseTokenURI = _baseTokenURI;
     }
 
-    function mintFox() public payable {
+    function createTokenURI(uint256 tokenId) public view returns(string memory) {
+        return CustomString.strConcat(baseTokenURI, CustomString.uint2str(tokenId));
+    }
+
+    function setProvenanceHash(string memory provenanceHash) public onlyOwner {
+        FOX_PROVENANCE = provenanceHash;
+    }
+
+    function mintFox(uint256 _numberOfTokens) public payable {
         require(!paused, "Minting is paused");
-        require(currentSupply() < totalSupply, "No foxes available for minting!");
-        require(_tokenBalance[owner()] > 0, "No foxes available for minting from owner issue!");
-        if (_msgSender() != owner()) {
-            require(msg.value >= mintPrice, "Insufficient Balance!");
-        }
-        uint256 _foxIndex = _fufoIDs.current();
-        _fufoIDs.increment();
-        _tokenBalance[owner()] -= 1;
-        _tokenBalance[_msgSender()] += 1;
-        Fox storage newFox = foxes[_foxIndex];
-        newFox.tokenId = _foxIndex;
-        newFox.creator = _msgSender();
-        newFox.owner = _msgSender();
-        newFox.uri = hashes[_foxIndex];
-        newFox.ownershipRecords.push(_msgSender());
-        emit FoxMint(msg.sender, newFox);
-    }
+        require(_numberOfTokens < maxMintNumber, "Too many tokens to mint at once.");
+        require(currentSupply.add(_numberOfTokens) < totalSupply, "No foxes available for minting!");
+        require(msg.value >= mintPrice.mul(_numberOfTokens), "Amount is not enough!");
 
-    function withdrawAll() public onlyOwner {
-        require(payable(_msgSender()).send(address(this).balance));
+        uint256 _foxIndex = currentSupply;
+        currentSupply += _numberOfTokens;
+        _tokenBalance[_msgSender()] += _numberOfTokens;
+        for (uint256 i = 0; i < _numberOfTokens; i++) {
+            Fox storage newFox = foxes[_foxIndex.add(i)];
+            newFox.tokenId = _foxIndex.add(i);
+            newFox.creator = _msgSender();
+            newFox.owner = _msgSender();
+            newFox.uri = createTokenURI(_foxIndex.add(i));
+            newFox.ownershipRecords.push(_msgSender());
+            _safeMint(_msgSender(), _foxIndex.add(i));
+            emit FoxMint(_msgSender(), newFox);
+        }
     }
     
+    function creatorOf(uint256 _tokenId) public view returns (address) {
+        return foxes[_tokenId].creator;
+    }
+
     function balanceOf(address account) public view virtual override returns(uint256) {
         return _tokenBalance[account];
     }
 
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(tokenId < _fufoIDs.current(), "ERC721Metadata: URI query for nonexistent token");
-        return foxes[tokenId].uri;
+    function tokenURI(uint256 _tokenId) override public view returns (string memory) {
+        require(_tokenId < currentSupply, "ERC721Metadata: URI query for nonexistent token");
+        return foxes[_tokenId].uri;
+    }
+
+    function withdrawAll() public onlyOwner {
+        payable(_msgSender()).transfer(address(this).balance);
     }
 
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {
@@ -145,9 +147,12 @@ contract FunkiFoxes is ERC721, Ownable {
 
     function _transfer(address from, address to, uint256 tokenId) internal virtual override {
         // check fox index is available
-        require(tokenId < _fufoIDs.current(), "Undefined fox index!");
+        require(tokenId < currentSupply, "Undefined tokenID!");
         // check owner of fox
-        require(foxes[tokenId].owner == from, "Caller is not owner");
+        require(ownerOf(tokenId) == from, "Caller is not owner");
+        require(to != address(0), "ERC721: transfer to the zero address");
+        _beforeTokenTransfer(from, to, tokenId);
+        _approve(address(0), tokenId);
         foxes[tokenId].owner = to;
         _tokenBalance[from]--;
         _tokenBalance[to]++;
