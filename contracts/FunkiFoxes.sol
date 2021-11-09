@@ -71,11 +71,18 @@ contract FunkiFoxes is ERC721, Ownable {
     }
     mapping(uint256=>Fox) private foxes;
 
+    bool public vipState = true;
+    address public vipAddress;
+    uint256 public vPrice = 0.05 ether;
+
     event FoxMint(address indexed to, Fox _fox);
     event SetPrice(uint256 _value);
     event ChangePaused(bool _value);
+    event ChangeVIPState(bool _value);
+    event SetVPrice(uint256 _value);
     
     constructor(string memory _baseTokenURI) ERC721("FunkiFoxes", "FUFO") {
+        // https://ipfs.funkifoxes.com/token-metadata/
         baseTokenURI = _baseTokenURI;
     }
 
@@ -101,12 +108,30 @@ contract FunkiFoxes is ERC721, Ownable {
         FOX_PROVENANCE = provenanceHash;
     }
 
-    function mintFox(uint256 _numberOfTokens) public payable {
-        require(!paused, "Minting is paused");
-        require(_numberOfTokens < maxMintNumber, "Too many tokens to mint at once.");
-        require(currentSupply.add(_numberOfTokens) < totalSupply, "No foxes available for minting!");
-        require(msg.value >= mintPrice.mul(_numberOfTokens), "Amount is not enough!");
+    function setVIPAddress(address _vipAddress) external onlyOwner {
+        vipAddress = _vipAddress;
+    }
 
+    function setVIPState() external onlyOwner {
+        vipState = !vipState;
+        emit ChangeVIPState(vipState);
+    }
+
+    function setVIPPrice(uint256 _vPrice) external onlyOwner {
+        vPrice = _vPrice;
+        emit SetVPrice(vPrice);
+    }
+
+    function mintFox(uint256 _numberOfTokens) public payable {
+        require(_numberOfTokens < maxMintNumber, "Too many tokens to mint at once");
+        require(currentSupply.add(_numberOfTokens) < totalSupply, "No foxes available for minting!");
+        if (vipState) {
+            require(msg.value >= vPrice.mul(_numberOfTokens), "Amount is not enough!");
+            require(ERC721(vipAddress).balanceOf(_msgSender()) > 0, "Non VIP member");
+        } else {
+            require(!paused, "Minting is paused");
+            require(msg.value >= mintPrice.mul(_numberOfTokens), "Amount is not enough!");
+        }
         uint256 _foxIndex = currentSupply;
         currentSupply += _numberOfTokens;
         _tokenBalance[_msgSender()] += _numberOfTokens;
