@@ -126,8 +126,9 @@ contract FunkiFoxes is ERC721, Ownable {
         require(_numberOfTokens < maxMintNumber, "Too many tokens to mint at once");
         require(currentSupply.add(_numberOfTokens) < totalSupply, "No foxes available for minting!");
         if (vipState) {
-            require(msg.value >= vPrice.mul(_numberOfTokens), "Amount is not enough!");
             require(ERC721(vipAddress).balanceOf(_msgSender()) > 0, "Non VIP member");
+            require(_tokenBalance[_msgSender()].add(_numberOfTokens) <= 2, "You can not mint more than 2 nfts!");
+            require(msg.value >= vPrice.mul(_numberOfTokens), "Amount is not enough!");
         } else {
             require(!paused, "Minting is paused");
             require(msg.value >= mintPrice.mul(_numberOfTokens), "Amount is not enough!");

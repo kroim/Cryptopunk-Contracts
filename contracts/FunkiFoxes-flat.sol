@@ -1,3 +1,46 @@
+/**
+                                   
+                  .mhhhhsyhmd/     ````` ```hmNNMMdyoydy                        
+                  :mhosyhyo+yho/::+dNdhshdhydmNmhsoooodm                        
+                  /NNsssshmy///ossyyo+++hhdhhddhsooooomm                        
+                  /NNdsssyN+/::///:::///+//////+shhyohMm                        
+                  .+++dyyds/:::::::::::///////////+ohNMm                        
+                  ````:md+::::::::::::://////////////oNNy                       
+                      :N+/::::::/++ooo+///////+ssssssosMN::                     
+                      /m///:::/sssssssso/////oosyhdhdhssNmd                     
+                      -do//////oyhmdhmhho////oohyhysysy/shd.``                  
+                      .od+/////odsysoo+o+//////+++++//++osddy/                  
+                      -+m+////++oosssssssssssoooyhddhds:::hNMs                  
+                      .sh++osyo+/:-....`````.:/mdyyyhms../dmmh                  
+              `+++++++sNdmdh/......`````       -ydddh/o+/dh---                  
+              .MMMMMMMmo/omdssh:--..```.-::::::/+syo//+sNN+                     
+              .MMMMMMh////+//odsssso/-..`..---...```.-oMm`                      
+              .MMMMMs///////////////osss+-:+++//+oo/dNMMm                       
+              .MMMNo////////////////////+hs++++o+/ysyMMMm                       
+              .MMN+//////////////////////////////////NMMm                       
+              .MN////////////////////////////////////yMMm                       
+              .Mo////////////////////////////////////+MMm                       
+            :NNh//////////////////////////////////////NMm                       
+            :MM+//////////////////////////////////////dMMhy                     
+            :Mh///////////////////////////////////////hMMMm                     
+            :Mo///////////////////////////////////////hMMMm                     
+            :M////////////////////////////////////////dMMMm                     
+            :M////////////////////////////////////////mMMMm                     
+            :N//////////////////////////////+osyyysssshdNMN:-                   
+            :M///////oo+/////////////+osyyhmh+:--......-ymMMNddds               
+            :M+///////oyyhyyyyyyyyyhyyso++yd-...........:/ohmMMMh               
+            :Ms////////////++++++//////+ohy-................:+dMh               
+            :Mm/////////////////////+syyo:....................-dh               
+            :MMs//////////////////ydy+:-----:/:...............-dh               
+            -mNNo/////////////////+oyyyyyyyhNy-............-:smMh               
+              :MNy///////////////////////+yh+...........-:oyNMMMh               
+              .oodNy+////////////////+oshy/.............-::hNooo/               
+                 yMMNds+/////////+dmys+:-..............-/smNd                   
+                 yMMMMMMmhyo+//////shhs/----------:/oyhNMMm                     
+                 ommmmmmmmmmmdhhyyyyyhmmddddhhhhddmmmmmmmmh                     
+                                                                  
+ */
+ 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
@@ -1259,49 +1302,6 @@ library CustomString {
     }
 }
 
-/**
-                                   
-                  .mhhhhsyhmd/     ````` ```hmNNMMdyoydy                        
-                  :mhosyhyo+yho/::+dNdhshdhydmNmhsoooodm                        
-                  /NNsssshmy///ossyyo+++hhdhhddhsooooomm                        
-                  /NNdsssyN+/::///:::///+//////+shhyohMm                        
-                  .+++dyyds/:::::::::::///////////+ohNMm                        
-                  ````:md+::::::::::::://////////////oNNy                       
-                      :N+/::::::/++ooo+///////+ssssssosMN::                     
-                      /m///:::/sssssssso/////oosyhdhdhssNmd                     
-                      -do//////oyhmdhmhho////oohyhysysy/shd.``                  
-                      .od+/////odsysoo+o+//////+++++//++osddy/                  
-                      -+m+////++oosssssssssssoooyhddhds:::hNMs                  
-                      .sh++osyo+/:-....`````.:/mdyyyhms../dmmh                  
-              `+++++++sNdmdh/......`````       -ydddh/o+/dh---                  
-              .MMMMMMMmo/omdssh:--..```.-::::::/+syo//+sNN+                     
-              .MMMMMMh////+//odsssso/-..`..---...```.-oMm`                      
-              .MMMMMs///////////////osss+-:+++//+oo/dNMMm                       
-              .MMMNo////////////////////+hs++++o+/ysyMMMm                       
-              .MMN+//////////////////////////////////NMMm                       
-              .MN////////////////////////////////////yMMm                       
-              .Mo////////////////////////////////////+MMm                       
-            :NNh//////////////////////////////////////NMm                       
-            :MM+//////////////////////////////////////dMMhy                     
-            :Mh///////////////////////////////////////hMMMm                     
-            :Mo///////////////////////////////////////hMMMm                     
-            :M////////////////////////////////////////dMMMm                     
-            :M////////////////////////////////////////mMMMm                     
-            :N//////////////////////////////+osyyysssshdNMN:-                   
-            :M///////oo+/////////////+osyyhmh+:--......-ymMMNddds               
-            :M+///////oyyhyyyyyyyyyhyyso++yd-...........:/ohmMMMh               
-            :Ms////////////++++++//////+ohy-................:+dMh               
-            :Mm/////////////////////+syyo:....................-dh               
-            :MMs//////////////////ydy+:-----:/:...............-dh               
-            -mNNo/////////////////+oyyyyyyyhNy-............-:smMh               
-              :MNy///////////////////////+yh+...........-:oyNMMMh               
-              .oodNy+////////////////+oshy/.............-::hNooo/               
-                 yMMNds+/////////+dmys+:-..............-/smNd                   
-                 yMMMMMMmhyo+//////shhs/----------:/oyhNMMm                     
-                 ommmmmmmmmmmdhhyyyyyhmmddddhhhhddmmmmmmmmh                     
-                                                                  
- */
-
 contract FunkiFoxes is ERC721, Ownable {
     using SafeMath for uint256;
 
@@ -1335,6 +1335,7 @@ contract FunkiFoxes is ERC721, Ownable {
     event SetVPrice(uint256 _value);
     
     constructor(string memory _baseTokenURI) ERC721("FunkiFoxes", "FUFO") {
+        // https://ipfs.funkifoxes.com/token-metadata/
         baseTokenURI = _baseTokenURI;
     }
 
@@ -1378,8 +1379,9 @@ contract FunkiFoxes is ERC721, Ownable {
         require(_numberOfTokens < maxMintNumber, "Too many tokens to mint at once");
         require(currentSupply.add(_numberOfTokens) < totalSupply, "No foxes available for minting!");
         if (vipState) {
-            require(msg.value >= vPrice.mul(_numberOfTokens), "Amount is not enough!");
             require(ERC721(vipAddress).balanceOf(_msgSender()) > 0, "Non VIP member");
+            require(_tokenBalance[_msgSender()].add(_numberOfTokens) <= 2, "You can not mint more than 2 nfts!");
+            require(msg.value >= vPrice.mul(_numberOfTokens), "Amount is not enough!");
         } else {
             require(!paused, "Minting is paused");
             require(msg.value >= mintPrice.mul(_numberOfTokens), "Amount is not enough!");
