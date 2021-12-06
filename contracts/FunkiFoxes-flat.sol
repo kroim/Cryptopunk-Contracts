@@ -40,6 +40,21 @@
                  ommmmmmmmmmmdhhyyyyyhmmddddhhhhddmmmmmmmmh                     
                                                                   
  */
+
+ /**
+  * Some got a head, but the cap don't fit.
+  * Some got no head, but they got a cap.
+  * Some got no cap, but they got the head.
+  * Who the cap fits, better wear it.
+  */
+
+ /**
+  * website:   https://funkifoxes.com
+  * discord:   https://discord.gg/RmnteYEZ5h
+  * twitter:   https://twitter.com/FunkiFoxes
+  * instagram: https://instagram.com/funkifoxes
+  * medium:    https://funkifoxes.medium.com  
+  */
  
 // SPDX-License-Identifier: MIT
 
@@ -1314,6 +1329,7 @@ contract FunkiFoxes is ERC721, Ownable {
     string baseTokenURI;
     uint256 public maxMintNumber = 10;
     bool public paused = true;
+    // What is the extra uniqueness percentage? Email funkiveller@gmail.com with your answer.
 
     struct Fox {
         uint256 tokenId;
@@ -1324,18 +1340,17 @@ contract FunkiFoxes is ERC721, Ownable {
     }
     mapping(uint256=>Fox) private foxes;
 
-    bool public vipState = true;
-    address public vipAddress;
-    uint256 public vPrice = 0.05 ether;
+    bool public fvtState = true;
+    address public fvtAddress;
+    uint256 public fvtPrice = 0.1 ether;
 
     event FoxMint(address indexed to, Fox _fox);
     event SetPrice(uint256 _value);
     event ChangePaused(bool _value);
-    event ChangeVIPState(bool _value);
-    event SetVPrice(uint256 _value);
+    event ChangeFVTState(bool _value);
+    event SetFVTPrice(uint256 _value);
     
-    constructor(string memory _baseTokenURI) ERC721("FunkiFoxes", "FUFO") {
-        // https://ipfs.funkifoxes.com/token-metadata/
+    constructor(string memory _baseTokenURI) ERC721("Funki Foxes", "FUFO") {
         baseTokenURI = _baseTokenURI;
     }
 
@@ -1361,31 +1376,33 @@ contract FunkiFoxes is ERC721, Ownable {
         FOX_PROVENANCE = provenanceHash;
     }
 
-    function setVIPAddress(address _vipAddress) external onlyOwner {
-        vipAddress = _vipAddress;
+    function setFVTAddress(address _fvtAddress) external onlyOwner {
+        fvtAddress = _fvtAddress;
     }
 
-    function setVIPState() external onlyOwner {
-        vipState = !vipState;
-        emit ChangeVIPState(vipState);
+    function setFVTState() external onlyOwner {
+        fvtState = !fvtState;
+        emit ChangeFVTState(fvtState);
     }
 
-    function setVIPPrice(uint256 _vPrice) external onlyOwner {
-        vPrice = _vPrice;
-        emit SetVPrice(vPrice);
+    function setFVTPrice(uint256 _fvtPrice) external onlyOwner {
+        fvtPrice = _fvtPrice;
+        emit SetFVTPrice(fvtPrice);
     }
 
     function mintFox(uint256 _numberOfTokens) public payable {
         require(_numberOfTokens < maxMintNumber, "Too many tokens to mint at once");
         require(currentSupply.add(_numberOfTokens) < totalSupply, "No foxes available for minting!");
-        if (vipState) {
-            require(ERC721(vipAddress).balanceOf(_msgSender()) > 0, "Non VIP member");
-            require(_tokenBalance[_msgSender()].add(_numberOfTokens) <= 2, "You can not mint more than 2 nfts!");
-            require(msg.value >= vPrice.mul(_numberOfTokens), "Amount is not enough!");
+
+        if (fvtState) {
+            require(ERC721(fvtAddress).balanceOf(_msgSender()) > 0, "Non FVT member");
+            require(_tokenBalance[_msgSender()].add(_numberOfTokens) <= 2, "You can not mint more than 2 tokens!");
+            require(msg.value >= fvtPrice.mul(_numberOfTokens), "Amount is not enough!");
         } else {
             require(!paused, "Minting is paused");
             require(msg.value >= mintPrice.mul(_numberOfTokens), "Amount is not enough!");
         }
+
         uint256 _foxIndex = currentSupply;
         currentSupply += _numberOfTokens;
         _tokenBalance[_msgSender()] += _numberOfTokens;
@@ -1397,6 +1414,7 @@ contract FunkiFoxes is ERC721, Ownable {
             newFox.uri = createTokenURI(_foxIndex.add(i));
             newFox.ownershipRecords.push(_msgSender());
             _safeMint(_msgSender(), _foxIndex.add(i));
+
             emit FoxMint(_msgSender(), newFox);
         }
     }
@@ -1430,12 +1448,73 @@ contract FunkiFoxes is ERC721, Ownable {
         // check owner of fox
         require(ownerOf(tokenId) == from, "Caller is not owner");
         require(to != address(0), "ERC721: transfer to the zero address");
+
         _beforeTokenTransfer(from, to, tokenId);
         _approve(address(0), tokenId);
         foxes[tokenId].owner = to;
         _tokenBalance[from]--;
         _tokenBalance[to]++;
         foxes[tokenId].ownershipRecords.push(to);
+
         emit Transfer(from, to, tokenId);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// First, think of the color of the clouds. Next, think of the color of snow. Now, think of the color of a bright full moon. what do foxes drink?
+// What is the end of everything?
+// What kind of room has no doors or windows?
+// Which word in the dictionary is always spelled incorrectly?
+
+// There are 4 riddles in this contract :) The first letters of each answer make up a code. Assemble the code and send your answers to gervixen@gmail.com
