@@ -61,7 +61,6 @@ contract FunkiVIPToken is ERC721, Ownable {
         require(!paused, "Minting is paused");
         require(_numberOfTokens == 1, "Too many tokens to mint at once.");
         require(currentSupply.add(_numberOfTokens) < totalSupply, "No fvt available for minting!");
-        require(msg.value >= mintPrice.mul(_numberOfTokens), "Amount is not enough!");
 
         uint256 _index = currentSupply;
         currentSupply += _numberOfTokens;

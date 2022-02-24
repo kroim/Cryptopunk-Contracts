@@ -55,7 +55,7 @@
   * instagram: https://instagram.com/funkifoxes
   * medium:    https://funkifoxes.medium.com  
   */
- 
+
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
@@ -976,6 +976,185 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
 }
 
 /**
+ * @title ERC-721 Non-Fungible Token Standard, optional enumeration extension
+ * @dev See https://eips.ethereum.org/EIPS/eip-721
+ */
+interface IERC721Enumerable is IERC721 {
+    /**
+     * @dev Returns the total amount of tokens stored by the contract.
+     */
+    function totalSupply() external view returns (uint256);
+
+    /**
+     * @dev Returns a token ID owned by `owner` at a given `index` of its token list.
+     * Use along with {balanceOf} to enumerate all of ``owner``'s tokens.
+     */
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256 tokenId);
+
+    /**
+     * @dev Returns a token ID at a given `index` of all the tokens stored by the contract.
+     * Use along with {totalSupply} to enumerate all tokens.
+     */
+    function tokenByIndex(uint256 index) external view returns (uint256);
+}
+
+/**
+ * @dev This implements an optional extension of {ERC721} defined in the EIP that adds
+ * enumerability of all the token ids in the contract as well as all token ids owned by each
+ * account.
+ */
+abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
+    // Mapping from owner to list of owned token IDs
+    mapping(address => mapping(uint256 => uint256)) private _ownedTokens;
+
+    // Mapping from token ID to index of the owner tokens list
+    mapping(uint256 => uint256) private _ownedTokensIndex;
+
+    // Array with all token ids, used for enumeration
+    uint256[] private _allTokens;
+
+    // Mapping from token id to position in the allTokens array
+    mapping(uint256 => uint256) private _allTokensIndex;
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC721) returns (bool) {
+        return interfaceId == type(IERC721Enumerable).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
+     */
+    function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual override returns (uint256) {
+        require(index < ERC721.balanceOf(owner), "ERC721Enumerable: owner index out of bounds");
+        return _ownedTokens[owner][index];
+    }
+
+    /**
+     * @dev See {IERC721Enumerable-totalSupply}.
+     */
+    function totalSupply() public view virtual override returns (uint256) {
+        return _allTokens.length;
+    }
+
+    /**
+     * @dev See {IERC721Enumerable-tokenByIndex}.
+     */
+    function tokenByIndex(uint256 index) public view virtual override returns (uint256) {
+        require(index < ERC721Enumerable.totalSupply(), "ERC721Enumerable: global index out of bounds");
+        return _allTokens[index];
+    }
+
+    /**
+     * @dev Hook that is called before any token transfer. This includes minting
+     * and burning.
+     *
+     * Calling conditions:
+     *
+     * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
+     * transferred to `to`.
+     * - When `from` is zero, `tokenId` will be minted for `to`.
+     * - When `to` is zero, ``from``'s `tokenId` will be burned.
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     *
+     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
+     */
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override {
+        super._beforeTokenTransfer(from, to, tokenId);
+
+        if (from == address(0)) {
+            _addTokenToAllTokensEnumeration(tokenId);
+        } else if (from != to) {
+            _removeTokenFromOwnerEnumeration(from, tokenId);
+        }
+        if (to == address(0)) {
+            _removeTokenFromAllTokensEnumeration(tokenId);
+        } else if (to != from) {
+            _addTokenToOwnerEnumeration(to, tokenId);
+        }
+    }
+
+    /**
+     * @dev Private function to add a token to this extension's ownership-tracking data structures.
+     * @param to address representing the new owner of the given token ID
+     * @param tokenId uint256 ID of the token to be added to the tokens list of the given address
+     */
+    function _addTokenToOwnerEnumeration(address to, uint256 tokenId) private {
+        uint256 length = ERC721.balanceOf(to);
+        _ownedTokens[to][length] = tokenId;
+        _ownedTokensIndex[tokenId] = length;
+    }
+
+    /**
+     * @dev Private function to add a token to this extension's token tracking data structures.
+     * @param tokenId uint256 ID of the token to be added to the tokens list
+     */
+    function _addTokenToAllTokensEnumeration(uint256 tokenId) private {
+        _allTokensIndex[tokenId] = _allTokens.length;
+        _allTokens.push(tokenId);
+    }
+
+    /**
+     * @dev Private function to remove a token from this extension's ownership-tracking data structures. Note that
+     * while the token is not assigned a new owner, the `_ownedTokensIndex` mapping is _not_ updated: this allows for
+     * gas optimizations e.g. when performing a transfer operation (avoiding double writes).
+     * This has O(1) time complexity, but alters the order of the _ownedTokens array.
+     * @param from address representing the previous owner of the given token ID
+     * @param tokenId uint256 ID of the token to be removed from the tokens list of the given address
+     */
+    function _removeTokenFromOwnerEnumeration(address from, uint256 tokenId) private {
+        // To prevent a gap in from's tokens array, we store the last token in the index of the token to delete, and
+        // then delete the last slot (swap and pop).
+
+        uint256 lastTokenIndex = ERC721.balanceOf(from) - 1;
+        uint256 tokenIndex = _ownedTokensIndex[tokenId];
+
+        // When the token to delete is the last token, the swap operation is unnecessary
+        if (tokenIndex != lastTokenIndex) {
+            uint256 lastTokenId = _ownedTokens[from][lastTokenIndex];
+
+            _ownedTokens[from][tokenIndex] = lastTokenId; // Move the last token to the slot of the to-delete token
+            _ownedTokensIndex[lastTokenId] = tokenIndex; // Update the moved token's index
+        }
+
+        // This also deletes the contents at the last position of the array
+        delete _ownedTokensIndex[tokenId];
+        delete _ownedTokens[from][lastTokenIndex];
+    }
+
+    /**
+     * @dev Private function to remove a token from this extension's token tracking data structures.
+     * This has O(1) time complexity, but alters the order of the _allTokens array.
+     * @param tokenId uint256 ID of the token to be removed from the tokens list
+     */
+    function _removeTokenFromAllTokensEnumeration(uint256 tokenId) private {
+        // To prevent a gap in the tokens array, we store the last token in the index of the token to delete, and
+        // then delete the last slot (swap and pop).
+
+        uint256 lastTokenIndex = _allTokens.length - 1;
+        uint256 tokenIndex = _allTokensIndex[tokenId];
+
+        // When the token to delete is the last token, the swap operation is unnecessary. However, since this occurs so
+        // rarely (when the last minted token is burnt) that we still do the swap here to avoid the gas cost of adding
+        // an 'if' statement (like in _removeTokenFromOwnerEnumeration)
+        uint256 lastTokenId = _allTokens[lastTokenIndex];
+
+        _allTokens[tokenIndex] = lastTokenId; // Move the last token to the slot of the to-delete token
+        _allTokensIndex[lastTokenId] = tokenIndex; // Update the moved token's index
+
+        // This also deletes the contents at the last position of the array
+        delete _allTokensIndex[tokenId];
+        _allTokens.pop();
+    }
+}
+
+/**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
  * specific functions.
@@ -1040,6 +1219,69 @@ abstract contract Ownable is Context {
         emit OwnershipTransferred(oldOwner, newOwner);
     }
 }
+
+/**
+ * @dev Contract module that helps prevent reentrant calls to a function.
+ *
+ * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier
+ * available, which can be applied to functions to make sure there are no nested
+ * (reentrant) calls to them.
+ *
+ * Note that because there is a single `nonReentrant` guard, functions marked as
+ * `nonReentrant` may not call one another. This can be worked around by making
+ * those functions `private`, and then adding `external` `nonReentrant` entry
+ * points to them.
+ *
+ * TIP: If you would like to learn more about reentrancy and alternative ways
+ * to protect against it, check out our blog post
+ * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].
+ */
+abstract contract ReentrancyGuard {
+    // Booleans are more expensive than uint256 or any type that takes up a full
+    // word because each write operation emits an extra SLOAD to first read the
+    // slot's contents, replace the bits taken up by the boolean, and then write
+    // back. This is the compiler's defense against contract upgrades and
+    // pointer aliasing, and it cannot be disabled.
+
+    // The values being non-zero value makes deployment a bit more expensive,
+    // but in exchange the refund on every call to nonReentrant will be lower in
+    // amount. Since refunds are capped to a percentage of the total
+    // transaction's gas, it is best to keep them low in cases like this one, to
+    // increase the likelihood of the full refund coming into effect.
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
+    uint256 private _status;
+
+    constructor() {
+        _status = _NOT_ENTERED;
+    }
+
+    /**
+     * @dev Prevents a contract from calling itself, directly or indirectly.
+     * Calling a `nonReentrant` function from another `nonReentrant`
+     * function is not supported. It is possible to prevent this from happening
+     * by making the `nonReentrant` function external, and make it call a
+     * `private` function that does the actual work.
+     */
+    modifier nonReentrant() {
+        // On the first call to nonReentrant, _notEntered will be true
+        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+
+        // Any calls to nonReentrant after this point will fail
+        _status = _ENTERED;
+
+        _;
+
+        // By storing the original value once again, a refund is triggered (see
+        // https://eips.ethereum.org/EIPS/eip-2200)
+        _status = _NOT_ENTERED;
+    }
+}
+
+// CAUTION
+// This version of SafeMath should only be used with Solidity 0.8 or later,
+// because it relies on the compiler's built in overflow checks.
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations.
@@ -1260,92 +1502,34 @@ library SafeMath {
     }
 }
 
-library CustomString {
-  // via https://github.com/oraclize/ethereum-api/blob/master/oraclizeAPI_0.5.sol
-  function strConcat(string memory _a, string memory _b, string memory _c, string memory _d, string memory _e) internal pure returns (string memory) {
-      bytes memory _ba = bytes(_a);
-      bytes memory _bb = bytes(_b);
-      bytes memory _bc = bytes(_c);
-      bytes memory _bd = bytes(_d);
-      bytes memory _be = bytes(_e);
-      string memory abcde = new string(_ba.length + _bb.length + _bc.length + _bd.length + _be.length);
-      bytes memory babcde = bytes(abcde);
-      uint k = 0;
-      for (uint i = 0; i < _ba.length; i++) babcde[k++] = _ba[i];
-      for (uint i = 0; i < _bb.length; i++) babcde[k++] = _bb[i];
-      for (uint i = 0; i < _bc.length; i++) babcde[k++] = _bc[i];
-      for (uint i = 0; i < _bd.length; i++) babcde[k++] = _bd[i];
-      for (uint i = 0; i < _be.length; i++) babcde[k++] = _be[i];
-      return string(babcde);
-    }
-
-    function strConcat(string memory _a, string memory _b, string memory _c, string memory _d) internal pure returns (string memory) {
-        return strConcat(_a, _b, _c, _d, "");
-    }
-
-    function strConcat(string memory _a, string memory _b, string memory _c) internal pure returns (string memory) {
-        return strConcat(_a, _b, _c, "", "");
-    }
-
-    function strConcat(string memory _a, string memory _b) internal pure returns (string memory) {
-        return strConcat(_a, _b, "", "", "");
-    }
-
-    function uint2str( uint256 _i ) internal pure returns (string memory str) {
-        if (_i == 0)
-        {
-            return "0";
-        }
-    
-        uint256 j = _i;
-        uint256 length;
-        while (j != 0)
-        {
-            length++;
-            j /= 10;
-        }
-    
-        bytes memory bstr = new bytes(length);
-        uint256 k = length;
-        j = _i;
-        while (j != 0)
-        {
-            bstr[--k] = bytes1(uint8(48 + j % 10));
-            j /= 10;
-        }
-        str = string(bstr);
-    }
-}
-
-contract FunkiFoxes is ERC721, Ownable {
+contract FunkiFoxes is Ownable, ERC721Enumerable, ReentrancyGuard {
     using SafeMath for uint256;
 
     string public FOX_PROVENANCE = "";
-    uint256 public currentSupply = 0;
-    uint256 public totalSupply = 12000;
+    uint256 public maxTokenSupply = 12000;
     uint256 public mintPrice = 0.1 ether;
     
     mapping (address=>uint256) private _tokenBalance;
     string baseTokenURI;
-    uint256 public maxMintNumber = 10;
+    uint256 public maxMintNumber = 20;
     bool public paused = true;
-    // What is the extra uniqueness percentage? Email funkiveller@gmail.com with your answer.
 
     struct Fox {
         uint256 tokenId;
         address creator;
         address owner;
-        string uri;
-        address[] ownershipRecords;
     }
     mapping(uint256=>Fox) private foxes;
 
     bool public fvtState = true;
     address public fvtAddress;
     uint256 public fvtPrice = 0.1 ether;
+    uint256[10000] private _availableTokens;
+    uint256 private _numAvailableTokens = 10000;
 
     event FoxMint(address indexed to, Fox _fox);
     event SetPrice(uint256 _value);
+    event MaxMintNumber(uint256 _value);
     event ChangePaused(bool _value);
     event ChangeFVTState(bool _value);
     event SetFVTPrice(uint256 _value);
@@ -1368,8 +1552,9 @@ contract FunkiFoxes is ERC721, Ownable {
         baseTokenURI = _baseTokenURI;
     }
 
-    function createTokenURI(uint256 tokenId) public view returns(string memory) {
-        return CustomString.strConcat(baseTokenURI, CustomString.uint2str(tokenId));
+    function setMaxMintNumber(uint256 _maxMintNumber) public onlyOwner {
+        maxMintNumber = _maxMintNumber;
+        emit MaxMintNumber(_maxMintNumber);
     }
 
     function setProvenanceHash(string memory provenanceHash) public onlyOwner {
@@ -1390,9 +1575,37 @@ contract FunkiFoxes is ERC721, Ownable {
         emit SetFVTPrice(fvtPrice);
     }
 
-    function mintFox(uint256 _numberOfTokens) public payable {
-        require(_numberOfTokens < maxMintNumber, "Too many tokens to mint at once");
-        require(currentSupply.add(_numberOfTokens) < totalSupply, "No foxes available for minting!");
+    function mintReserves(uint256[] memory ids) public onlyOwner {
+        require(ids.length <= maxMintNumber, "Too many tokens");
+        require(validateReserveTokens(ids), "Invalid tokens to reserve!");
+        for(uint256 i = 0; i < ids.length; i++) {
+            uint256 _mintIndex = useAvailableTokenAtIndex(ids[i]);
+            Fox storage newFox = foxes[_mintIndex];
+            newFox.tokenId = _mintIndex;
+            newFox.creator = _msgSender();
+            newFox.owner = _msgSender();
+            _safeMint(_msgSender(), _mintIndex);
+            emit FoxMint(_msgSender(), newFox);
+        }
+        _tokenBalance[_msgSender()] += ids.length;
+    }
+
+    function validateReserveTokens(uint256[] memory ids) internal view returns(bool) {
+        bool res = true;
+        for (uint256 i = 0; i < ids.length; i++) {
+            if (_availableTokens[ids[i]] != 0) {
+                res = false;
+                break;
+            }
+        }
+        return res;
+    }
+
+    function mintFox(uint256 _numberOfTokens) public payable nonReentrant() {
+        require(_numberOfTokens >= 1, "At least, one token should be");
+        require(_numberOfTokens <= maxMintNumber, "Too many tokens to mint at once");
+        uint256 totalSupply = totalSupply();
+        require(totalSupply.add(_numberOfTokens) <= maxTokenSupply, "No foxes available for minting!");
 
         if (fvtState) {
             require(ERC721(fvtAddress).balanceOf(_msgSender()) > 0, "Non FVT member");
@@ -1402,23 +1615,57 @@ contract FunkiFoxes is ERC721, Ownable {
             require(!paused, "Minting is paused");
             require(msg.value >= mintPrice.mul(_numberOfTokens), "Amount is not enough!");
         }
-
-        uint256 _foxIndex = currentSupply;
-        currentSupply += _numberOfTokens;
         _tokenBalance[_msgSender()] += _numberOfTokens;
-        for (uint256 i = 0; i < _numberOfTokens; i++) {
-            Fox storage newFox = foxes[_foxIndex.add(i)];
-            newFox.tokenId = _foxIndex.add(i);
+        for (uint256 i = 1; i <= _numberOfTokens; i++) {
+            uint256 _mintIndex = useRandomAvailableToken(_numberOfTokens, i);
+            Fox storage newFox = foxes[_mintIndex];
+            newFox.tokenId = _mintIndex;
             newFox.creator = _msgSender();
             newFox.owner = _msgSender();
-            newFox.uri = createTokenURI(_foxIndex.add(i));
-            newFox.ownershipRecords.push(_msgSender());
-            _safeMint(_msgSender(), _foxIndex.add(i));
-
+            _safeMint(_msgSender(), _mintIndex);
             emit FoxMint(_msgSender(), newFox);
         }
     }
+
+    function useRandomAvailableToken(uint256 _numToFetch, uint256 _i) internal returns (uint256) {
+        uint256 randomNum = uint256(
+            keccak256(
+                abi.encode(
+                    msg.sender,
+                    tx.gasprice,
+                    block.number,
+                    block.timestamp,
+                    blockhash(block.number - 1),
+                    _numToFetch,
+                    _i
+                )
+            )
+        );
+        uint256 randomIndex = (randomNum % _numAvailableTokens) + 1;
+        return useAvailableTokenAtIndex(randomIndex);
+    }
     
+    function useAvailableTokenAtIndex(uint256 indexToUse) internal returns (uint256) {
+        uint256 valAtIndex = _availableTokens[indexToUse];
+        uint256 result;
+        if (valAtIndex == 0) {
+            result = indexToUse;
+        } else {
+            result = valAtIndex;
+        }
+        uint256 lastIndex = _numAvailableTokens - 1;
+        if (indexToUse != lastIndex) {
+            uint256 lastValInArray = _availableTokens[lastIndex];
+            if (lastValInArray == 0) {
+                _availableTokens[indexToUse] = lastIndex;
+            } else {
+                _availableTokens[indexToUse] = lastValInArray;
+            }
+        }
+        _numAvailableTokens--;
+        return result;
+    }
+
     function creatorOf(uint256 _tokenId) public view returns (address) {
         return foxes[_tokenId].creator;
     }
@@ -1427,9 +1674,10 @@ contract FunkiFoxes is ERC721, Ownable {
         return _tokenBalance[account];
     }
 
-    function tokenURI(uint256 _tokenId) override public view returns (string memory) {
-        require(_tokenId < currentSupply, "ERC721Metadata: URI query for nonexistent token");
-        return foxes[_tokenId].uri;
+    function tokenURI(uint256 _tokenId) public view override returns (string memory) {
+        require(_availableTokens[_tokenId] != 0, "ERC721Metadata: URI query for nonexistent token");
+        string memory _tokenURI = Strings.toString(_tokenId);
+        return string(abi.encodePacked(baseTokenURI, _tokenURI));
     }
 
     function withdrawAll() public onlyOwner {
@@ -1443,8 +1691,6 @@ contract FunkiFoxes is ERC721, Ownable {
     }
 
     function _transfer(address from, address to, uint256 tokenId) internal virtual override {
-        // check fox index is available
-        require(tokenId < currentSupply, "Undefined tokenID!");
         // check owner of fox
         require(ownerOf(tokenId) == from, "Caller is not owner");
         require(to != address(0), "ERC721: transfer to the zero address");
@@ -1454,7 +1700,6 @@ contract FunkiFoxes is ERC721, Ownable {
         foxes[tokenId].owner = to;
         _tokenBalance[from]--;
         _tokenBalance[to]++;
-        foxes[tokenId].ownershipRecords.push(to);
 
         emit Transfer(from, to, tokenId);
     }
@@ -1462,59 +1707,12 @@ contract FunkiFoxes is ERC721, Ownable {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// First, think of the color of the clouds. Next, think of the color of snow. Now, think of the color of a bright full moon. what do foxes drink?
-// What is the end of everything?
-// What kind of room has no doors or windows?
-// Which word in the dictionary is always spelled incorrectly?
-
-// There are 4 riddles in this contract :) The first letters of each answer make up a code. Assemble the code and send your answers to gervixen@gmail.com
+/**
+ * Riddles?
+ * What is the end of everything?
+ * What kind of room has no doors or windows?
+ * Which word in the dictionary is always spelled incorrectly?
+ *
+ * There are 4 riddles in this contract :) The first letters of each answer make up a code. Assemble the code and send your answers to gervixen@gmail.com
+ * The first letter of each answer make up a code ;) send the code to gervixen@gmail.com
+ */
